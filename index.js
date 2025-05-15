@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
 const audioContext = new AudioCtx({ latencyHint: 0.00001 });
 audioContext.destination.channelInterpretation = "discrete";
 audioContext.suspend();
@@ -115,13 +115,7 @@ async function activateMIDISensors() {
         await faustNode.startSensors();
         sensorHandlersBound = true;
     }
-
-    // Initialize the MIDI setup
-    if (!midiHandlersBound) {
-        startMIDI();
-        midiHandlersBound = true;
-    }
-
+    
     // Connect the Faust node to the audio output
     faustNode.connect(audioContext.destination);
 
