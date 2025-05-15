@@ -60,24 +60,6 @@ function resumeAudioContext() {
     }
 }
 
-// Function to start MIDI
-function startMIDI() {
-    // Check if the browser supports the Web MIDI API
-    if (navigator.requestMIDIAccess) {
-        navigator.requestMIDIAccess().then(
-            midiAccess => {
-                console.log("MIDI Access obtained.");
-                for (let input of midiAccess.inputs.values()) {
-                    input.onmidimessage = (event) => faustNode.midiMessage(event.data);
-                    console.log(`Connected to input: ${input.name}`);
-                }
-            },
-            () => console.error("Failed to access MIDI devices.")
-        );
-    } else {
-        console.log("Web MIDI API is not supported in this browser.");
-    }
-}
 
 // Function to stop MIDI
 function stopMIDI() {
@@ -144,11 +126,6 @@ async function deactivateAudioMIDISensors() {
         sensorHandlersBound = false;
     }
 
-    // Deactivate the MIDI setup
-    if (midiHandlersBound && FAUST_DSP_VOICES > 0) {
-        stopMIDI();
-        midiHandlersBound = false;
-    }
 }
 
 // Event listener to handle user interaction
