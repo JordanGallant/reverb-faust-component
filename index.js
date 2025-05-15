@@ -26,8 +26,9 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 /** @type {typeof AudioContext} */
 const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
 const audioContext = new AudioCtx({ latencyHint: 0.00001 });
+console.log("hello")
 audioContext.destination.channelInterpretation = "discrete";
-audioContext.suspend();
+audioContext.suspend(); //pauses playing
 
 // Declare faustNode as a global variable
 let faustNode;
@@ -61,30 +62,11 @@ function resumeAudioContext() {
 }
 
 
-// Function to stop MIDI
-function stopMIDI() {
-    // Check if the browser supports the Web MIDI API
-    if (navigator.requestMIDIAccess) {
-        navigator.requestMIDIAccess().then(
-            midiAccess => {
-                console.log("MIDI Access obtained.");
-                for (let input of midiAccess.inputs.values()) {
-                    input.onmidimessage = null;
-                    console.log(`Disconnected from input: ${input.name}`);
-                }
-            },
-            () => console.error("Failed to access MIDI devices.")
-        );
-    } else {
-        console.log("Web MIDI API is not supported in this browser.");
-    }
-}
-
 let sensorHandlersBound = false;
 let midiHandlersBound = false;
 
 // Function to activate MIDI and Sensors on user interaction
-async function activateMIDISensors() {
+async function activateMicSensors() {
 
     // Import the create-node module
     const { connectToAudioInput, requestPermissions } = await import("./create-node.js");
@@ -113,7 +95,7 @@ async function activateMIDISensors() {
 }
 
 // Function to suspend AudioContext, deactivate MIDI and Sensors on user interaction
-async function deactivateAudioMIDISensors() {
+async function deactivateAudioMicSensors() {
 
     // Suspend the AudioContext
     if (audioContext.state === 'running') {
@@ -135,7 +117,7 @@ function handleUserInteraction() {
     resumeAudioContext();
 
     // Launch the activation of MIDI and Sensors
-    activateMIDISensors().catch(error => {
+    activateMicSensors().catch(error => {
         console.error('Error when activating audio, MIDI and sensors:', error);
     });
 }
@@ -147,7 +129,7 @@ window.addEventListener('touchstart', handleUserInteraction);
 // Deactivate AudioContext, MIDI and Sensors on user interaction
 window.addEventListener('visibilitychange', function () {
     if (window.visibilityState === 'hidden') {
-        deactivateAudioMIDISensors();
+        deactivateAudioMicSensors();
     }
 });
 
