@@ -24,15 +24,23 @@ if ("serviceWorker" in navigator) {
 const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
-const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
-const audioElement = document.querySelector('audio')
-if (audioElement){
-    console.log("There is an audio element on this page")
-}
-const audioContext = new AudioCtx({ latencyHint: 0.00001 });
-console.log("hello")
-audioContext.destination.channelInterpretation = "discrete";
-audioContext.suspend(); //pauses audio context
+
+//wait until load
+document.addEventListener("DOMContentLoaded", function () {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const audioElement = document.querySelector('audio');
+    
+    if (audioElement) {
+        console.log("There is an audio element on this page");
+    } else {
+        console.log("No audio element found");
+    }
+
+    const audioContext = new AudioCtx({ latencyHint: 0.00001 });
+    console.log("hello");
+    audioContext.destination.channelInterpretation = "discrete";
+    audioContext.suspend();
+});
 
 // Declare faustNode as a global variable
 let faustNode;
