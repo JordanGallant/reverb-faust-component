@@ -26,27 +26,15 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 /** @type {typeof AudioContext} */
 
 window.addEventListener('message', (event) => {
-  // Log all messages for debugging
-  console.log('RAW Message received in PWA:', event);
-  console.log('Message data:', event.data);
-  console.log('Message origin:', event.origin);
-  
-  // Check for audio source messages
-  if (event.data && event.data.type === 'audioSource') {
-    const audioSrc = event.data.data;
-    console.log('Received audio source:', audioSrc);
-    
-    // Acknowledge receipt back to parent
-    window.parent.postMessage({ 
-      type: 'audioSourceReceived', 
-      status: 'success',
-      timestamp: new Date().toISOString()
-    }, '*');
+  if (event.origin !== 'https://localhost:3000') return;
+
+  const { type, payload } = event.data;
+
+  if (type === 'AUDIO_ELEMENT_INFO') {
+    console.log('Received audio info:', payload);
+    // Do something with the payload.src or playback state
   }
 });
-
-// Add this to verify the script is loading and the listener is registered
-console.log('PWA message listener registered at:', new Date().toISOString());
 
 
 
