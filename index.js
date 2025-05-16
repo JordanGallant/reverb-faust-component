@@ -25,10 +25,14 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
 const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
+const audioElement = document.querySelector('audio')
+if (audioElement){
+    console.log("There is an audio element on this page")
+}
 const audioContext = new AudioCtx({ latencyHint: 0.00001 });
 console.log("hello")
 audioContext.destination.channelInterpretation = "discrete";
-audioContext.suspend(); //pauses playing
+audioContext.suspend(); //pauses audio context
 
 // Declare faustNode as a global variable
 let faustNode;
@@ -36,7 +40,7 @@ let faustNode;
 // Called at load time
 (async () => {
 
-    // Import the create-node module
+    // creates a faust node
     const { createFaustNode, createFaustUI } = await import("./create-node.js");
 
     // To test the ScriptProcessorNode mode
@@ -60,7 +64,6 @@ function resumeAudioContext() {
         });
     }
 }
-
 
 let sensorHandlersBound = false;
 let midiHandlersBound = false;
