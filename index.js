@@ -12,7 +12,6 @@ const FAUST_DSP_VOICES = 0;
 // We'll create the AudioContext but not initialize it yet
 let audioContext = null;
 let faustNode = null;
-let faustInitialized = false;
 
 /** @type {HTMLDivElement} */
 const $divFaustUI = document.getElementById("div-faust-ui");
@@ -36,7 +35,6 @@ async function initAudio() {
         
         // Create the Faust UI
         await createFaustUI($divFaustUI, faustNode);
-        faustInitialized = true;
         
         console.log("Audio and Faust initialized successfully");
     } catch (error) {
@@ -60,7 +58,13 @@ window.addEventListener("message", async (event) => {
     }
     
     try {
-        // Resume audio context if suspended
+        // Make sure audio is initialized
+        if (!audioContext) {
+            console.warn("AudioContext not initialized yet. Please interact with the page first.");
+            return;
+        }
+        
+        // Ensure the AudioContext is running
         if (audioContext.state === "suspended") {
             await audioContext.resume();
         }
@@ -77,7 +81,7 @@ window.addEventListener("message", async (event) => {
         // Connect to Faust node if available, otherwise directly to output
         if (faustNode) {
             source.connect(faustNode);
-            // Faust node should already be connected to destination from initialization
+            faustNode.connect(audioContext.destination);
         } else {
             // If Faust node isn't available, connect directly to output
             source.connect(audioContext.destination);
