@@ -25,6 +25,9 @@ window.addEventListener("message", async (event) => {
         source.buffer = audioBuffer;
         sourceRef = source;
 
+        // Make sure Faust library is properly loaded before initializing
+        await loadFaustLibrary();
+        
         // Wait until Faust node and UI are ready
         await initializeFaust(sourceRef, audioContext);
 
@@ -37,19 +40,55 @@ window.addEventListener("message", async (event) => {
     }
 });
 
-async function initializeFaust(source, audioContext) {
-    const { createFaustNode, createFaustUI } = await import("./create-node.js");
-
-    const result = await createFaustNode(source, "osc", FAUST_DSP_VOICES);
-    faustNode = result.faustNode;
-
-    if (!faustNode) {
-        throw new Error("Faust DSP not compiled");
+// Add function to ensure Faust library is properly loaded
+async function loadFaustLibrary() {
+    // Check if Faust is already loaded
+    if (window.Faust && window.Faust.ready) {
+        return window.Faust.ready;
     }
+    
+    // Load Faust if not already done
+    if (!window.Faust) {
+        console.log("Loading Faust library...");
+        // You might need to adjust the path to match where your Faust library is located
+        await import("./path-to-faust-library.js");
+    }
+    
+    // Wait for Faust to be ready
+    return new Promise(resolve => {
+        if (window.Faust && window.Faust.ready) {
+            resolve();
+        } else {
+            // Set up listener for when Faust is ready
+            window.addEventListener("faust-ready", resolve, { once: true });
+        }
+    });
+}
 
-    // Connect: source → Faust → destination
-    source.connect(faustNode);
-    faustNode.connect(audioContext.destination);
+async function initializeFaust(source, audioContext) {
+    try {
+        const { createFaustNode, createFaustUI } = await import("./create-node.js");
 
-    await createFaustUI($divFaustUI, faustNode);
+        // Check if Faust is properly initialized before creating node
+        if (!window.Faust) {
+            throw new Error("Faust library not loaded");
+        }
+
+        const result = await createFaustNode(source, "osc", FAUST_DSP_VOICES);
+        
+        if (!result || !result.faustNode) {
+            throw new Error("Failed to create Faust node");
+        }
+        
+        faustNode = result.faustNode;
+
+        // Connect: source → Faust → destination
+        source.connect(faustNode);
+        faustNode.connect(audioContext.destination);
+
+        await createFaustUI($divFaustUI, faustNode);
+    } catch (error) {
+        console.error("Error initializing Faust:", error);
+        throw error;
+    }
 }
