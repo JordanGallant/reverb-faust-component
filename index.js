@@ -10,7 +10,6 @@ const FAUST_DSP_VOICES = 0;
  */
 
 
-console.log("Hello")
 
 /**
  * Registers the service worker.
@@ -60,6 +59,8 @@ function resumeAudioContext() {
     if (audioContext.state === 'suspended') {
         audioContext.resume().then(() => {
             console.log('AudioContext resumed successfully');
+            console.log("Hello This is a test")
+
 
         }).catch(error => {
             console.error('Error when resuming AudioContext:', error);
