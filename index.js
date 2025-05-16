@@ -10,9 +10,11 @@ const FAUST_DSP_VOICES = 0;
  */
 
 
-window.addEventListener("message", (event) => {
+window.addEventListener("message", async (event) => {
     console.log("Received message in iframe:", event.data);
         const url = event.data;
+        const response = await fetch(url)
+        console.log(response)
 
 });
 
