@@ -41,12 +41,6 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 /** @type {typeof AudioContext} */
 
 
-
-const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
-const audioContext = new AudioCtx({ latencyHint: 0.00001 });
-audioContext.destination.channelInterpretation = "discrete";
-audioContext.suspend(); //pauses audio context
-
 // Declare faustNode as a global variable
 let faustNode;
 
