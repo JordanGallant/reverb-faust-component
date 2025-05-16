@@ -10,7 +10,7 @@ const FAUST_DSP_VOICES = 0;
  */
 
 window.addEventListener("message", (event) => {
-    console.log("Received message in iframe:", event.data);
+    console.log("Received message in iframe:", event);
     // You can add code here to handle the message
 });
 
