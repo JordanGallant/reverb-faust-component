@@ -9,6 +9,10 @@ const FAUST_DSP_VOICES = 0;
  * @typedef {import("./faustwasm").FaustUIItem} FaustUIItem
  */
 
+
+console.log("Parent window:", window.parent);
+
+
 /**
  * Registers the service worker.
  */
@@ -25,13 +29,10 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
 
-window.addEventListener("message", (event) => {
-    console.log("Received message in iframe:", event.data);
-});
+
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
 const audioContext = new AudioCtx({ latencyHint: 0.00001 });
-console.log("hello")
 audioContext.destination.channelInterpretation = "discrete";
 audioContext.suspend(); //pauses audio context
 
