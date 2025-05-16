@@ -81,50 +81,8 @@ function resumeAudioContext() {
 let sensorHandlersBound = false;
 let midiHandlersBound = false;
 
-// Function to activate MIDI and Sensors on user interaction
-async function activateMicSensors() {
 
-    // Import the create-node module
-    const { connectToAudioInput, requestPermissions } = await import("./create-node.js");
 
-    // Request permission for sensors
-    await requestPermissions();
-
-    // Activate sensor listeners
-    if (!sensorHandlersBound) {
-        await faustNode.startSensors();
-        sensorHandlersBound = true;
-    }
-    
-    // Connect the Faust node to the audio output
-    faustNode.connect(audioContext.destination);
-
-    // Connect the Faust node to the audio input
-    if (faustNode.numberOfInputs > 0) {
-        await connectToAudioInput(audioContext, null, faustNode, null);
-    }
-
-    // Resume the AudioContext
-    if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-    }
-}
-
-// Function to suspend AudioContext, deactivate MIDI and Sensors on user interaction
-async function deactivateAudioMicSensors() {
-
-    // Suspend the AudioContext
-    if (audioContext.state === 'running') {
-        await audioContext.suspend();
-    }
-
-    // Deactivate sensor listeners
-    if (sensorHandlersBound) {
-        faustNode.stopSensors();
-        sensorHandlersBound = false;
-    }
-
-}
 
 // Event listener to handle user interaction
 function handleUserInteraction() {
@@ -133,9 +91,7 @@ function handleUserInteraction() {
     resumeAudioContext();
 
     // Launch the activation of MIDI and Sensors
-    activateMicSensors().catch(error => {
-        console.error('Error when activating audio, MIDI and sensors:', error);
-    });
+
 }
 
 // Activate AudioContext, MIDI and Sensors on user interaction
@@ -145,7 +101,6 @@ window.addEventListener('touchstart', handleUserInteraction);
 // Deactivate AudioContext, MIDI and Sensors on user interaction
 window.addEventListener('visibilitychange', function () {
     if (window.visibilityState === 'hidden') {
-        deactivateAudioMicSensors();
     }
 });
 
