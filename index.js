@@ -25,11 +25,15 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
 
-// Send message to parent to ask about audio
-window.parent.postMessage("getAudioStatus", "https://revival-records.vercel.app/blog/live-coding-music");
-
-// Listen for response
-window.parent.postMessage({ type: "hello", data: "iframe loaded" }, "http://localhost:3000/blog/live-coding-music");
+window.addEventListener('message', (event) => {
+  console.log('Message received in PWA:', event.data);
+  
+  // Check for audio source messages
+  if (event.data && event.data.type === 'audioSource') {
+    const audioSrc = event.data.data;
+    console.log('Received audio source:', audioSrc);
+  }
+});
 
 
 
