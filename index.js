@@ -25,22 +25,26 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
 
-//wait until load
-document.addEventListener("DOMContentLoaded", function () {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const audioElement = document.querySelector('audio');
-    
-    if (audioElement) {
-        console.log("There is an audio element on this page");
-    } else {
-        console.log("No audio element found");
-    }
+// Send message to parent to ask about audio
+window.parent.postMessage("getAudioStatus", "https://revival-records.vercel.app/blog/live-coding-music");
 
-    const audioContext = new AudioCtx({ latencyHint: 0.00001 });
-    console.log("hello");
-    audioContext.destination.channelInterpretation = "discrete";
-    audioContext.suspend();
+// Listen for response
+window.addEventListener("message", (event) => {
+  if (event.origin !== "https://revival-records.vercel.app/blog/live-coding-music") return;
+
+  if (event.data.audioExists) {
+    console.log("✅ Audio element exists in parent. Current time:", event.data.currentTime);
+  } else {
+    console.log("❌ No audio element found in parent.");
+  }
 });
+
+
+const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
+const audioContext = new AudioCtx({ latencyHint: 0.00001 });
+console.log("hello")
+audioContext.destination.channelInterpretation = "discrete";
+audioContext.suspend(); //pauses audio context
 
 // Declare faustNode as a global variable
 let faustNode;
