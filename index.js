@@ -10,15 +10,26 @@ const FAUST_DSP_VOICES = 0;
  */
 
 let sourceRef;
-//new code
+let faustNode;
+let faustInitialized = false;
+
+/** @type {HTMLDivElement} */
+const $divFaustUI = document.getElementById("div-faust-ui");
+
+// Message listener: runs when the parent window sends a URL
 window.addEventListener("message", async (event) => {
     console.log("Received message in iframe:", event.data);
 
     const url = event.data;
 
-    // Skip if the message is not a valid URL
+    // Validate the message
     if (typeof url !== "string" || !url.startsWith("http")) {
         console.warn("Invalid URL received in message:", url);
+        return;
+    }
+
+    if (faustInitialized) {
+        console.warn("Faust already initialized. Skipping duplicate init.");
         return;
     }
 
@@ -30,20 +41,34 @@ window.addEventListener("message", async (event) => {
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
         const source = audioContext.createBufferSource();
-        sourceRef = source
+        sourceRef = source;
         source.buffer = audioBuffer;
-        source.connect(audioContext.destination);
-        source.start();// start te music from iframe
-        console.log("Audio playback started");
+
+        // Load Faust and create DSP node
+        const { createFaustNode, createFaustUI } = await import("./create-node.js");
+        const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
+        faustNode = result.faustNode;
+        if (!faustNode) throw new Error("Faust DSP not compiled");
+
+        // Connect Faust node to destination
+        faustNode.connect(audioContext.destination);
+
+        // Create UI
+        await createFaustUI($divFaustUI, faustNode);
+
+        // Connect audio source to Faust
+        source.connect(faustNode);
+        source.start();
+
+        console.log("Audio playback started with Faust processing");
+        faustInitialized = true;
+
     } catch (error) {
         console.error("Error during audio processing:", error);
     }
 });
 
-
-/**
- * Registers the service worker.
- */
+// Service Worker Registration (unchanged)
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js")
@@ -52,45 +77,10 @@ if ("serviceWorker" in navigator) {
     });
 }
 
-/** @type {HTMLDivElement} */
-const $divFaustUI = document.getElementById("div-faust-ui");
-
-/** @type {typeof AudioContext} */
-
-
-//old code
-const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
-const audioContext = new AudioCtx({ latencyHint: 0.00001 });
-audioContext.destination.channelInterpretation = "discrete";
-audioContext.suspend(); //pauses audio context
-
-// Declare faustNode as a global variable
-let faustNode;
-
-// Called at load time
-(async () => {
-
-    // creates a faust node
-    const { createFaustNode, createFaustUI } = await import("./create-node.js");
-    // To test the ScriptProcessorNode mode
-    // const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES, true, 512);
-    const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
-    faustNode = result.faustNode;  // Assign to the global variable
-    if (!faustNode) throw new Error("Faust DSP not compiled");
-
-    // Create the Faust UI
-    await createFaustUI($divFaustUI, faustNode);
-
-})();
-
-
-let sensorHandlersBound = false;
-let midiHandlersBound = false;
-
-
-window.addEventListener('visibilitychange', function () {
-    if (window.visibilityState === 'hidden') {
+// Optional: track visibility for UX or pause/resume
+window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        console.log("Page hidden");
+        // Optional: handle visibility state
     }
 });
-
-
