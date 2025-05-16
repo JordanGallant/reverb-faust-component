@@ -29,10 +29,6 @@ window.addEventListener("message", async (event) => {
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
         const source = audioContext.createBufferSource();
-
-        const { createFaustNode, createFaustUI } = await import("./create-node.js");
-        const result = await createFaustNode(source, "osc", FAUST_DSP_VOICES);
-
         source.buffer = audioBuffer;
         source.connect(audioContext.destination);
         source.start();
