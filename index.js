@@ -42,7 +42,6 @@ let faustNode;
 
     // creates a faust node
     const { createFaustNode, createFaustUI } = await import("./create-node.js");
-
     // To test the ScriptProcessorNode mode
     // const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES, true, 512);
     const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
@@ -59,8 +58,6 @@ function resumeAudioContext() {
     if (audioContext.state === 'suspended') {
         audioContext.resume().then(() => {
             console.log('AudioContext resumed successfully');
-            console.log("Hello This is a test")
-
 
         }).catch(error => {
             console.error('Error when resuming AudioContext:', error);
