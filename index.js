@@ -9,12 +9,20 @@ const FAUST_DSP_VOICES = 0;
  * @typedef {import("./faustwasm").FaustUIItem} FaustUIItem
  */
 
-
+let faustNode;
+let audioContext
 window.addEventListener("message", async (event) => {
     console.log("Received message in iframe:", event.data);
         const url = event.data;
         const response = await fetch(url)
-        console.log(response)
+        const arrayBuffer = await response.arrayBuffer();
+        const audioContext = new AudioContext(); 
+        await audioContext.decodeAudioData(arrayBuffer);
+        audioContext.createBufferSource(); 
+        const { createFaustNode } = await import("./create-node.js");
+    const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
+    faustNode = result.faustNode;  // Assign to the global variable
+    if (!faustNode) throw new Error("Faust DSP not compiled");
 
 });
 
@@ -36,28 +44,10 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 
 
-const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
-const audioContext = new AudioCtx({ latencyHint: 0.00001 });
-audioContext.destination.channelInterpretation = "discrete";
-audioContext.suspend(); //pauses audio context
-
-// Declare faustNode as a global variable
-let faustNode;
-
-// Called at load time
+//loads ui
 (async () => {
-
-    // creates a faust node
-    const { createFaustNode, createFaustUI } = await import("./create-node.js");
-    // To test the ScriptProcessorNode mode
-    // const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES, true, 512);
-    const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
-    faustNode = result.faustNode;  // Assign to the global variable
-    if (!faustNode) throw new Error("Faust DSP not compiled");
-
-    // Create the Faust UI
+const {createFaustUI} =  await import("./create-node.js");
     await createFaustUI($divFaustUI, faustNode);
-
 })();
 
 // Synchronous function to resume AudioContext, to be called first in the synchronous event listener
@@ -75,50 +65,6 @@ function resumeAudioContext() {
 let sensorHandlersBound = false;
 let midiHandlersBound = false;
 
-// Function to activate MIDI and Sensors on user interaction
-async function activateMicSensors() {
-
-    // Import the create-node module
-    const { connectToAudioInput, requestPermissions } = await import("./create-node.js");
-
-    // Request permission for sensors
-    await requestPermissions();
-
-    // Activate sensor listeners
-    if (!sensorHandlersBound) {
-        await faustNode.startSensors();
-        sensorHandlersBound = true;
-    }
-    
-    // Connect the Faust node to the audio output
-    faustNode.connect(audioContext.destination);
-
-    // Connect the Faust node to the audio input
-    if (faustNode.numberOfInputs > 0) {
-        await connectToAudioInput(audioContext, null, faustNode, null);
-    }
-
-    // Resume the AudioContext
-    if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-    }
-}
-
-// Function to suspend AudioContext, deactivate MIDI and Sensors on user interaction
-async function deactivateAudioMicSensors() {
-
-    // Suspend the AudioContext
-    if (audioContext.state === 'running') {
-        await audioContext.suspend();
-    }
-
-    // Deactivate sensor listeners
-    if (sensorHandlersBound) {
-        faustNode.stopSensors();
-        sensorHandlersBound = false;
-    }
-
-}
 
 // Event listener to handle user interaction
 function handleUserInteraction() {
