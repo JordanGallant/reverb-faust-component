@@ -25,39 +25,9 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
 
-window.addEventListener('message', (event) => {
-    // Accept messages from any origin that embeds this iframe
-    console.log('Message received from origin:', event.origin);
-    
-    const { type, payload } = event.data;
-
-    if (type === 'AUDIO_ELEMENT_INFO') {
-        console.log('Received audio info:', payload);
-        
-        // If needed, respond back to confirm receipt
-        if (event.source) {
-            event.source.postMessage({
-                type: 'AUDIO_INFO_RECEIVED',
-                status: 'success'
-            }, event.origin);
-        }
-        
-        // Process the audio element info
-        handleAudioElementInfo(payload);
-    }
+window.addEventListener("message", (event) => {
+    console.log("Received message in iframe:", event.data);
 });
-
-
-function handleAudioElementInfo(payload) {
-    // Here you can use the audio information from the parent
-    console.log(`Audio source: ${payload.src}`);
-    console.log(`Current time: ${payload.currentTime}`);
-    console.log(`Paused: ${payload.paused}`);
-    
-    // You could potentially use this information to synchronize with faustNode
-    // For example, you might want to adjust parameters based on the audio state
-}
-
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
 const audioContext = new AudioCtx({ latencyHint: 0.00001 });
