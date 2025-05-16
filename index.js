@@ -9,7 +9,10 @@ const FAUST_DSP_VOICES = 0;
  * @typedef {import("./faustwasm").FaustUIItem} FaustUIItem
  */
 
-
+window.addEventListener("message", (event) => {
+    console.log("Received message in iframe:", event.data);
+    // You can add code here to handle the message
+});
 
 /**
  * Registers the service worker.
