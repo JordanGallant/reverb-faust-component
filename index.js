@@ -12,17 +12,32 @@ const FAUST_DSP_VOICES = 0;
 
 window.addEventListener("message", async (event) => {
     console.log("Received message in iframe:", event.data);
-        const url = event.data;
-        const response = await fetch(url)
+
+    const url = event.data;
+
+    // Skip if the message is not a valid URL
+    if (typeof url !== "string" || !url.startsWith("http")) {
+        console.warn("Invalid URL received in message:", url);
+        return;
+    }
+
+    try {
+        const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
 
-        const audioContext = new AudioContext(); 
+        const audioContext = new AudioContext();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        const source = audioContext.createBufferSource(); // Create audio source
-        console.log(source)
 
-
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.start();
+        console.log("Audio playback started");
+    } catch (error) {
+        console.error("Error during audio processing:", error);
+    }
 });
+
 
 /**
  * Registers the service worker.
