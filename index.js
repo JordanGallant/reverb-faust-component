@@ -9,14 +9,14 @@ const FAUST_DSP_VOICES = 0;
  * @typedef {import("./faustwasm").FaustUIItem} FaustUIItem
  */
 
-let audioContext;
+
 window.addEventListener("message", async (event) => {
     console.log("Received message in iframe:", event.data);
         const url = event.data;
         const response = await fetch(url)
         const arrayBuffer = await response.arrayBuffer();
 
-        audioContext = new AudioContext(); 
+        const audioContext = new AudioContext(); 
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
         const source = audioContext.createBufferSource(); // Create audio source
         console.log(source)
@@ -40,6 +40,12 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
 
+
+
+const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
+const audioContext = new AudioCtx({ latencyHint: 0.00001 });
+audioContext.destination.channelInterpretation = "discrete";
+audioContext.suspend(); //pauses audio context
 
 // Declare faustNode as a global variable
 let faustNode;
