@@ -10,8 +10,6 @@ const FAUST_DSP_VOICES = 0;
  */
 
 //new code
-let faustNode;
-
 window.addEventListener("message", async (event) => {
     console.log("Received message in iframe:", event.data);
 
@@ -34,9 +32,6 @@ window.addEventListener("message", async (event) => {
 
         const { createFaustNode, createFaustUI } = await import("./create-node.js");
         const result = await createFaustNode(source, "osc", FAUST_DSP_VOICES);
-        faustNode = result.faustNode;  // Assign to the global variable
-        if (!faustNode) throw new Error("Faust DSP not compiled");
-        await createFaustUI($divFaustUI, faustNode);
 
         source.buffer = audioBuffer;
         source.connect(audioContext.destination);
@@ -72,6 +67,7 @@ audioContext.destination.channelInterpretation = "discrete";
 audioContext.suspend(); //pauses audio context
 
 // Declare faustNode as a global variable
+let faustNode;
 
 // Called at load time
 (async () => {
