@@ -10,7 +10,6 @@ const FAUST_DSP_VOICES = 0;
  */
 
 
-console.log("Parent window:", window.parent);
 
 
 /**
@@ -61,6 +60,8 @@ function resumeAudioContext() {
     if (audioContext.state === 'suspended') {
         audioContext.resume().then(() => {
             console.log('AudioContext resumed successfully');
+            console.log("Parent window:", window.parent);
+
         }).catch(error => {
             console.error('Error when resuming AudioContext:', error);
         });
