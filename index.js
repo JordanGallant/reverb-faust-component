@@ -25,8 +25,25 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 
 /** @type {typeof AudioContext} */
 
+// Improved message listener with better logging
 window.addEventListener("message", (event) => {
     console.log("Received message in iframe:", event.data);
+    
+    // Add some origin safety check
+    if (event.origin !== "https://your-client-domain.com") {
+        // You can remove this check during development or set it to your actual domain
+        // console.log("Ignoring message from unknown origin:", event.origin);
+        // return;
+    }
+    
+    // Respond back to parent to confirm message was received
+    if (event.source) {
+        event.source.postMessage({
+            type: "CONFIRMATION",
+            message: "Message received in PWA: " + event.data
+        }, "*");
+        console.log("Sent confirmation back to parent");
+    }
 });
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
@@ -40,19 +57,37 @@ let faustNode;
 
 // Called at load time
 (async () => {
+    try {
+        // creates a faust node
+        const { createFaustNode, createFaustUI } = await import("./create-node.js");
 
-    // creates a faust node
-    const { createFaustNode, createFaustUI } = await import("./create-node.js");
+        // To test the ScriptProcessorNode mode
+        // const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES, true, 512);
+        const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
+        faustNode = result.faustNode;  // Assign to the global variable
+        if (!faustNode) throw new Error("Faust DSP not compiled");
 
-    // To test the ScriptProcessorNode mode
-    // const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES, true, 512);
-    const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
-    faustNode = result.faustNode;  // Assign to the global variable
-    if (!faustNode) throw new Error("Faust DSP not compiled");
-
-    // Create the Faust UI
-    await createFaustUI($divFaustUI, faustNode);
-
+        // Create the Faust UI
+        await createFaustUI($divFaustUI, faustNode);
+        
+        // Signal to parent that initialization is complete
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: "INIT_COMPLETE",
+                message: "Faust PWA initialized successfully"
+            }, "*");
+            console.log("Sent initialization complete message to parent");
+        }
+    } catch (error) {
+        console.error("Error during initialization:", error);
+        // Inform parent about the error
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: "INIT_ERROR",
+                message: error.message
+            }, "*");
+        }
+    }
 })();
 
 // Synchronous function to resume AudioContext, to be called first in the synchronous event listener
@@ -60,6 +95,13 @@ function resumeAudioContext() {
     if (audioContext.state === 'suspended') {
         audioContext.resume().then(() => {
             console.log('AudioContext resumed successfully');
+            // Notify parent that audio context is active
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: "AUDIO_RESUMED",
+                    message: "AudioContext resumed successfully"
+                }, "*");
+            }
         }).catch(error => {
             console.error('Error when resuming AudioContext:', error);
         });
@@ -137,4 +179,26 @@ window.addEventListener('visibilitychange', function () {
     }
 });
 
-
+// Function to handle control commands from parent
+function handleControlCommand(command, params = {}) {
+    console.log(`Executing command: ${command}`, params);
+    
+    switch (command) {
+        case "START_AUDIO":
+            resumeAudioContext();
+            activateMicSensors();
+            break;
+        case "STOP_AUDIO":
+            deactivateAudioMicSensors();
+            break;
+        case "SET_PARAMETER":
+            if (faustNode && params.path && params.value !== undefined) {
+                faustNode.setParamValue(params.path, params.value);
+                console.log(`Parameter set: ${params.path} = ${params.value}`);
+            }
+            break;
+        default:
+            console.log("Unknown command:", command);
+    }
+}
+Claude
