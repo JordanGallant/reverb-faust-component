@@ -29,15 +29,8 @@ const $divFaustUI = document.getElementById("div-faust-ui");
 window.parent.postMessage("getAudioStatus", "https://revival-records.vercel.app/blog/live-coding-music");
 
 // Listen for response
-window.addEventListener("message", (event) => {
-  if (event.origin !== "https://revival-records.vercel.app/blog/live-coding-music") return;
+window.parent.postMessage({ type: "hello", data: "iframe loaded" }, "http://localhost:3000/blog/live-coding-music");
 
-  if (event.data.audioExists) {
-    console.log("✅ Audio element exists in parent. Current time:", event.data.currentTime);
-  } else {
-    console.log("❌ No audio element found in parent.");
-  }
-});
 
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext; // compatibilty with
