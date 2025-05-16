@@ -19,6 +19,7 @@ window.addEventListener("message", async (event) => {
         const audioContext = new AudioContext(); 
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
         const source = audioContext.createBufferSource(); // Create audio source
+        console.log(source)
 
 
 });
