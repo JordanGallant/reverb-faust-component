@@ -9,9 +9,11 @@ const FAUST_DSP_VOICES = 0;
  * @typedef {import("./faustwasm").FaustUIItem} FaustUIItem
  */
 
-window.addEventListener("message", (event) => {
+window.addEventListener("message", async(event) => {
     console.log("Received message in iframe:", event.data);
         const url = event.data;
+        const response =  fetch(url)
+        console.log(response)
 
 });
 
