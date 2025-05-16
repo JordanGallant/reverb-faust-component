@@ -1,3 +1,4 @@
+// Set to > 0 if the DSP is polyphonic 
 const FAUST_DSP_VOICES = 0;
 
 /**
@@ -8,45 +9,43 @@ const FAUST_DSP_VOICES = 0;
  * @typedef {import("./faustwasm").FaustUIItem} FaustUIItem
  */
 
-// AudioContext compatibility 
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-const audioContext = new AudioCtx({ latencyHint: 0.00001 });
-audioContext.destination.channelInterpretation = "discrete";
-audioContext.suspend(); // pauses audio context
-
-// Declare faustNode as a global variable
-let faustNode;
+// We'll create the AudioContext but not initialize it yet
+let audioContext = null;
+let faustNode = null;
+let faustInitialized = false;
 
 /** @type {HTMLDivElement} */
 const $divFaustUI = document.getElementById("div-faust-ui");
 
-// Add a click handler to the document to resume AudioContext
-document.addEventListener('click', function resumeAudio() {
-    if (audioContext.state === 'suspended') {
-        audioContext.resume();
-    }
-    document.removeEventListener('click', resumeAudio);
-});
-
-// Initialize Faust DSP
-(async () => {
+// Initialize audio and Faust only after user interaction
+async function initAudio() {
+    if (audioContext !== null) return; // Already initialized
+    
+    // Create AudioContext on demand
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    audioContext = new AudioCtx({ latencyHint: 0.00001 });
+    audioContext.destination.channelInterpretation = "discrete";
+    
     try {
         // creates a faust node
         const { createFaustNode, createFaustUI } = await import("./create-node.js");
-        // To test the ScriptProcessorNode mode
-        // const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES, true, 512);
         const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
-        faustNode = result.faustNode;  // Assign to the global variable
+        faustNode = result.faustNode;
+        
         if (!faustNode) throw new Error("Faust DSP not compiled");
         
         // Create the Faust UI
         await createFaustUI($divFaustUI, faustNode);
+        faustInitialized = true;
         
-        console.log("Faust node initialized successfully");
+        console.log("Audio and Faust initialized successfully");
     } catch (error) {
         console.error("Error initializing Faust DSP:", error);
     }
-})();
+}
+
+// Add a click handler to initialize audio
+document.addEventListener('click', initAudio, { once: true });
 
 // Handle incoming audio URLs
 window.addEventListener("message", async (event) => {
