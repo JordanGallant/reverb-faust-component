@@ -81,39 +81,11 @@ let faustNode;
 
 })();
 
-// Synchronous function to resume AudioContext, to be called first in the synchronous event listener
-function resumeAudioContext() {
-    if (audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-            console.log('AudioContext resumed successfully');
-
-        }).catch(error => {
-            console.error('Error when resuming AudioContext:', error);
-        });
-    }
-}
 
 let sensorHandlersBound = false;
 let midiHandlersBound = false;
 
 
-
-
-// Event listener to handle user interaction
-function handleUserInteraction() {
-
-    // Resume AudioContext synchronously
-    resumeAudioContext();
-
-    // Launch the activation of MIDI and Sensors
-
-}
-
-// Activate AudioContext, MIDI and Sensors on user interaction
-window.addEventListener('click', handleUserInteraction);
-window.addEventListener('touchstart', handleUserInteraction);
-
-// Deactivate AudioContext, MIDI and Sensors on user interaction
 window.addEventListener('visibilitychange', function () {
     if (window.visibilityState === 'hidden') {
     }
