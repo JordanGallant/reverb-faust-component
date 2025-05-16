@@ -9,33 +9,10 @@ const FAUST_DSP_VOICES = 0;
  * @typedef {import("./faustwasm").FaustUIItem} FaustUIItem
  */
 
-let bufferSource;
-window.addEventListener("message", async (event) => {
+window.addEventListener("message", (event) => {
     console.log("Received message in iframe:", event.data);
         const url = event.data;
-         try {
-        if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-        }
 
-        if (bufferSource) {
-            bufferSource.stop();
-            bufferSource.disconnect();
-        }
-
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-        bufferSource = audioContext.createBufferSource();
-        bufferSource.buffer = audioBuffer;
-
-        bufferSource.connect(faustNode);
-        bufferSource.start();
-        console.log("Playing audio:", url);
-    } catch (error) {
-        console.error("Error loading or playing audio file:", error);
-    }
 });
 
 /**
@@ -69,11 +46,11 @@ let faustNode;
 
     // creates a faust node
     const { createFaustNode, createFaustUI } = await import("./create-node.js");
+    // To test the ScriptProcessorNode mode
+    // const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES, true, 512);
     const result = await createFaustNode(audioContext, "osc", FAUST_DSP_VOICES);
     faustNode = result.faustNode;  // Assign to the global variable
     if (!faustNode) throw new Error("Faust DSP not compiled");
-        faustNode.connect(audioContext.destination);
-
 
     // Create the Faust UI
     await createFaustUI($divFaustUI, faustNode);
@@ -95,8 +72,6 @@ function resumeAudioContext() {
 let sensorHandlersBound = false;
 let midiHandlersBound = false;
 
-
-// Event listener to handle user interaction
 function handleUserInteraction() {
 
     // Resume AudioContext synchronously
