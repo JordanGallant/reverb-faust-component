@@ -1,4 +1,3 @@
-// Set to > 0 if the DSP is polyphonic 
 const FAUST_DSP_VOICES = 0;
 
 /**
@@ -20,6 +19,14 @@ let faustNode;
 
 /** @type {HTMLDivElement} */
 const $divFaustUI = document.getElementById("div-faust-ui");
+
+// Add a click handler to the document to resume AudioContext
+document.addEventListener('click', function resumeAudio() {
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    document.removeEventListener('click', resumeAudio);
+});
 
 // Initialize Faust DSP
 (async () => {
