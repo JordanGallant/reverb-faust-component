@@ -40,7 +40,7 @@ window.addEventListener("message", async (event) => {
 async function initializeFaust(source, audioContext) {
     const { createFaustNode, createFaustUI } = await import("./create-node.js");
 
-    const result = await createFaustNode(source, "osc", FAUST_DSP_VOICES, audioContext);
+    const result = await createFaustNode(source, "osc", FAUST_DSP_VOICES);
     faustNode = result.faustNode;
 
     if (!faustNode) {
